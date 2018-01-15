@@ -1,6 +1,7 @@
-// var express = require('express');
 import express from 'express';
-import graphqlHTTP from 'express-graphql';
+import bodyParser from 'body-parser';
+import { graphqlExpress, graphiqlExpress } from 'apollo-server-express';
+import io from "socket.io";
 import cors from 'cors';
 import { buildSchema } from 'graphql';
 import schema from './data/schema';
@@ -8,10 +9,10 @@ import path from 'path';
 import favicon from 'serve-favicon';
 import logger from 'morgan';
 import cookieParser from 'cookie-parser';
-import bodyParser from 'body-parser';
 
 import index from './routes/index';
 
+const PORT = 4000;
 const app = express();
 
 // view engine setup
@@ -28,6 +29,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
 
+/*
+* setting cors
+*/ 
 const whitelist = ['http://localhost:3000','http://localhost:3002','http://localhost:4000']
 const corsOptions = {
   origin: function (origin, callback) {
@@ -41,12 +45,13 @@ const corsOptions = {
     }
   }
 }
+app.use(cors(corsOptions));
 
-app.use('/graphql', cors(corsOptions), graphqlHTTP({
-  schema,
-  graphiql: true, //process.env.NODE_ENV === 'development',
-  // pretty: true
-}))
+/*
+* setting apollo server
+*/ 
+app.use('/graphql', bodyParser.json(), graphqlExpress({ schema }));
+app.get('/graphiql', graphiqlExpress({ endpointURL: '/graphql' }));
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
