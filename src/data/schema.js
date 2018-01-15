@@ -554,9 +554,42 @@ const Mutation = new GraphQLObjectType({
   }
 });
 
+const Result = new GraphQLObjectType({
+  name: 'Result',
+  description: 'Result',
+  fields: () => {
+    return {
+      id: {
+        type: GraphQLString
+      }
+    }
+  }
+});
+
+const Subscription = new GraphQLObjectType({
+  name: 'Subscription',
+  description: 'Subscription',
+  fields: () => {
+    return {
+      somethingChanged: {
+        type: Result,
+      }
+    }
+  }
+});
+
+// type Subscription {
+//   somethingChanged: Result
+// }
+
+// type Result {
+//   id: String
+// }
+
 const Schema = new GraphQLSchema({
   query: Query,
-  mutation: Mutation
+  mutation: Mutation,
+  subscription: Subscription
 });
 
 export default Schema;
