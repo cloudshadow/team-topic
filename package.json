@@ -4,7 +4,7 @@
   "author": "CloudShadow.Me",
   "license": "MIT",
   "scripts": {
-    "start": "babel-node ./bin/www",
+    "start": "babel-node ./src/app.js",
     "auto-start": "nodemon --exec \"npm start\" --ignore public/js"
   },
   "dependencies": {
@@ -23,7 +23,6 @@
     "mysql2": "^1.5.1",
     "sequelize": "^4.28.6",
     "serve-favicon": "~2.4.2",
-    "socket.io": "^2.0.4",
     "subscriptions-transport-ws": "^0.9.5"
   },
   "devDependencies": {

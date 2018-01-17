@@ -6,11 +6,14 @@ import {
   GraphQLInt,
   GraphQLSchema,
   GraphQLList,
-  GraphQLNonNull
+  GraphQLNonNull,
+  // subscribe
 } from 'graphql';
-
+import { PubSub, withFilter } from 'graphql-subscriptions';
 import sequelize from './sequelize';
 import { UserModel, TeamModel, UserTeamModel, PostModel } from './models';
+
+const pubsub = new PubSub();
 
 const User = new GraphQLObjectType({
   name: 'User',
@@ -528,10 +531,20 @@ const Mutation = new GraphQLObjectType({
           }
         },
         resolve (source, args) {
+          console.log('================');
+          console.log(source)
           return PostModel.findById(args.id).then( post => {
-            return post.update({
+            let updatedPostPromise = post.update({
               ...args
             });
+            updatedPostPromise.then(post => {
+              console.log(222222)
+              console.log(post.dataValues)
+              pubsub.publish('updatedPost', {updatedPost:post.dataValues});
+              console.log(33333)
+            })
+            console.log(updatedPostPromise)
+            return updatedPostPromise;
           });
         }
       },
@@ -554,36 +567,67 @@ const Mutation = new GraphQLObjectType({
   }
 });
 
-const Result = new GraphQLObjectType({
-  name: 'Result',
-  description: 'Result',
-  fields: () => {
-    return {
-      id: {
-        type: GraphQLString
-      }
-    }
-  }
-});
-
 const Subscription = new GraphQLObjectType({
   name: 'Subscription',
   description: 'Subscription',
   fields: () => {
     return {
-      somethingChanged: {
-        type: Result,
+      updatedPost: {
+        type: Post,
+        args:{
+          id: {
+            type: GraphQLInt
+          }
+        },
+        // subscribe: withFilter(() => pubsub.asyncIterator('updatedPost'), (payload, variables) => {
+        //   console.log(payload)
+        //   // The `messageAdded` channel includes events for all channels, so we filter to only
+        //   // pass through events for the channel specified in the query
+        //   return payload.channelId === variables.channelId;
+        // }),
+        resolve (payload, args, context, info) {
+          pubsub.asyncIterator('updatedPost');
+          console.log('$$$$$$$$$$$$$$$$$');
+          console.log(payload);
+          console.log(args);
+          console.log(context);
+          console.log(info);
+          return payload;
+        },
+        subscribe: () => pubsub.asyncIterator('updatedPost'),
+        // resolve (source, args) {
+        //   console.log('********************')
+        //   console.log(source)
+        //   return source;
+        // },
+        // subscribe: (payload) => {
+        //   console.log(payload)
+        //   console.log(5555)
+        //   pubsub.asyncIterator('POST_HAS_BEEN_UPDATED')
+        // }
+        // subscribe: withFilter(
+        //   () => pubsub.asyncIterator('POST_HAS_BEEN_UPDATED'),
+        //   (payload, variables) => {
+        //     return payload.id === variables.id;
+        //   }
+        // )
       }
     }
   }
 });
 
-// type Subscription {
-//   somethingChanged: Result
-// }
+// const Subscription = {
+//   Subscription: {
+//     type: Post,
+//     updatedPost: {
+//       resolve: (payload, args, context, info) => {
+//         // Manipulate and return the new value
 
-// type Result {
-//   id: String
+//         return payload;
+//       },
+//       subscribe: () => pubsub.asyncIterator('POST_HAS_BEEN_UPDATED'),
+//     },
+//   },
 // }
 
 const Schema = new GraphQLSchema({
