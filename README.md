@@ -5,14 +5,14 @@
   > Updated subscription function with apollo.
 
 ## Demo
-  ![Demo](https://user-images.githubusercontent.com/1182967/34916358-29ac1902-f972-11e7-9963-d96811684e5f.gif)
+  ![Demo](https://user-images.githubusercontent.com/1182967/35098855-c701375c-fc90-11e7-87cb-6520edda5b5f.gif)
 
 ## View Source
   > [Team Topic View](https://github.com/cloudshadow/team-topic-view)
 
 ## Contents
   * Graphql subscription
-  * Mysql create table sql(teamtopic.sql)
+  * Mysql create table sql(team_topic.sql)
   * ORM by sequelize
   * Graphql work with sequelize
 
