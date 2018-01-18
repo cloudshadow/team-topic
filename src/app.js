@@ -53,8 +53,6 @@ app.use(cors(corsOptions));
 */ 
 app.use('/graphql', bodyParser.json(), graphqlExpress({ 
   schema,
-  // endpointURL: '/graphql',
-  // subscriptionsEndpoint: `ws://localhost:${PORT}/subscriptions`
 }));
 app.use('/graphiql', graphiqlExpress({
   endpointURL: '/graphql',

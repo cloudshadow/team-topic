@@ -7,7 +7,6 @@ import {
   GraphQLSchema,
   GraphQLList,
   GraphQLNonNull,
-  // subscribe
 } from 'graphql';
 import { PubSub, withFilter } from 'graphql-subscriptions';
 import sequelize from './sequelize';
@@ -267,20 +266,6 @@ const Query = new GraphQLObjectType({
           return TeamModel.findOne({ where: args });
         }
       },
-      // teams: {
-      //   type: new GraphQLList(Team),
-      //   args: {
-      //     id: {
-      //       type: GraphQLInt
-      //     },
-      //     name: {
-      //       type: GraphQLString
-      //     }
-      //   },
-      //   resolve (root, args) {
-      //     return TeamModel.findAll({ where: args });
-      //   }
-      // },
       userTeam: {
         type: UserTeam,
         args: {
@@ -478,7 +463,7 @@ const Mutation = new GraphQLObjectType({
           }
         },
         resolve (source, args) {
-          return PostModel.create({
+          const createPostPromise = PostModel.create({
             team_id: args.team_id,
             author: args.author,
             title: args.title,
@@ -491,6 +476,10 @@ const Mutation = new GraphQLObjectType({
             status: args.status,
             color: args.color,
           });
+          createPostPromise.then(post => {
+            pubsub.publish('updatedPost', post.dataValues);
+          })
+          return createPostPromise;
         }
       },
       updatePost: {
@@ -538,12 +527,9 @@ const Mutation = new GraphQLObjectType({
               ...args
             });
             updatedPostPromise.then(post => {
-              console.log(222222)
               console.log(post.dataValues)
-              pubsub.publish('updatedPost', {updatedPost:post.dataValues});
-              console.log(33333)
+              pubsub.publish('updatedPost', post.dataValues);
             })
-            console.log(updatedPostPromise)
             return updatedPostPromise;
           });
         }
@@ -575,60 +561,20 @@ const Subscription = new GraphQLObjectType({
       updatedPost: {
         type: Post,
         args:{
-          id: {
+          team_id: {
             type: GraphQLInt
           }
         },
-        // subscribe: withFilter(() => pubsub.asyncIterator('updatedPost'), (payload, variables) => {
-        //   console.log(payload)
-        //   // The `messageAdded` channel includes events for all channels, so we filter to only
-        //   // pass through events for the channel specified in the query
-        //   return payload.channelId === variables.channelId;
-        // }),
         resolve (payload, args, context, info) {
-          pubsub.asyncIterator('updatedPost');
-          console.log('$$$$$$$$$$$$$$$$$');
-          console.log(payload);
-          console.log(args);
-          console.log(context);
-          console.log(info);
           return payload;
         },
-        subscribe: () => pubsub.asyncIterator('updatedPost'),
-        // resolve (source, args) {
-        //   console.log('********************')
-        //   console.log(source)
-        //   return source;
-        // },
-        // subscribe: (payload) => {
-        //   console.log(payload)
-        //   console.log(5555)
-        //   pubsub.asyncIterator('POST_HAS_BEEN_UPDATED')
-        // }
-        // subscribe: withFilter(
-        //   () => pubsub.asyncIterator('POST_HAS_BEEN_UPDATED'),
-        //   (payload, variables) => {
-        //     return payload.id === variables.id;
-        //   }
-        // )
+        subscribe: withFilter(() => pubsub.asyncIterator('updatedPost'), (payload, variables) => {
+          return payload.team_id === variables.team_id;
+        }),
       }
     }
   }
 });
-
-// const Subscription = {
-//   Subscription: {
-//     type: Post,
-//     updatedPost: {
-//       resolve: (payload, args, context, info) => {
-//         // Manipulate and return the new value
-
-//         return payload;
-//       },
-//       subscribe: () => pubsub.asyncIterator('POST_HAS_BEEN_UPDATED'),
-//     },
-//   },
-// }
 
 const Schema = new GraphQLSchema({
   query: Query,
