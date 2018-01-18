@@ -31,6 +31,7 @@
 1. git clone https://github.com/cloudshadow/team-topic.git
 2. npm install
 3. npm run auto-start
+4. account: cloud, password:123456; account: shadow, password:123456;
 
 ## License
 
