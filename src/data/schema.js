@@ -520,14 +520,11 @@ const Mutation = new GraphQLObjectType({
           }
         },
         resolve (source, args) {
-          console.log('================');
-          console.log(source)
           return PostModel.findById(args.id).then( post => {
             let updatedPostPromise = post.update({
               ...args
             });
             updatedPostPromise.then(post => {
-              console.log(post.dataValues)
               pubsub.publish('updatedPost', post.dataValues);
             })
             return updatedPostPromise;

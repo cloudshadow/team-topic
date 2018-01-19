@@ -53,10 +53,10 @@ app.use(cors(corsOptions));
 */ 
 app.use('/graphql', bodyParser.json(), graphqlExpress({ 
   schema,
+  subscriptionsEndpoint: `ws://localhost:4000/subscriptions`
 }));
 app.use('/graphiql', graphiqlExpress({
   endpointURL: '/graphql',
-  subscriptionsEndpoint: `ws://localhost:4000/subscriptions`
 }));// if you want GraphiQL enabled
 
 // catch 404 and forward to error handler
